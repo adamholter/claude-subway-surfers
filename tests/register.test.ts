@@ -1,0 +1,26 @@
+import {describe,expect,test,tier,mock} from 'claude-code/testing'
+tier('user')
+describe('video playback',()=>{
+ test('advances, pauses, restarts and loops in the native desktop pane',async($,on)=>{
+  const clock=mock.clock(on)
+  const a='<svg xmlns="http://www.w3.org/2000/svg" width="240" height="426"><rect width="240" height="426" fill="red"/></svg>'
+  const b=a.replace('red','blue')
+  on('fs.read',($,e)=>({value:e.path.endsWith('clip.json')?JSON.stringify({fps:20,width:240,height:426,parts:['part.json']}):JSON.stringify([a,b])}))
+  on('session.start',($,e)=>({cwd:e.cwd}))
+  on('command.register',($,e)=>({value:{command:e.name}}))
+  on('ui.open',()=>({value:{id:'subway-video',isPlaced:true,plugin:'subway-video'}}))
+  await $.session.start({surface:'desktop',isInteractive:true,cwd:'/work'})
+  await $.command.run({command:'subway',args:'',origin:{kind:'composer'},presentation:{columns:160,isFullscreen:true}})
+  const ui=await $.ui.mount({plugin:'subway-video',surface:'desktop',component:'Pane',requestId:'subway-video',props:{title:'Subway Surfers',isFocused:false,bodyColumns:42,placement:'dock',scroll:{offset:0,bodyRows:36},view:{}}})
+  expect(await ui.find({type:'Svg'})).toMatchObject({props:{source:a}})
+  await clock.advance(50)
+  expect(await ui.find({type:'Svg'})).toMatchObject({props:{source:b}})
+  await ui.press({key:'pause'});await clock.advance(50)
+  expect(await ui.find({type:'Svg'})).toMatchObject({props:{source:b}})
+  await ui.press({key:'restart'})
+  expect(await ui.find({type:'Svg'})).toMatchObject({props:{source:a}})
+  await clock.advance(100)
+  expect(await ui.find({type:'Svg'})).toMatchObject({props:{source:a}})
+  await ui.unmount()
+ })
+})

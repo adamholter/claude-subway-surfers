@@ -1,0 +1,1 @@
+{"name":"claude-subway-video","version":"1.0.0","private":true,"type":"module","scripts":{"typecheck":"tsc --noEmit","test":"CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1 claude plugin test .","validate":"npm run typecheck && CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1 claude plugin validate . --strict && npm test"},"devDependencies":{"typescript":"^5.9.3"}}
